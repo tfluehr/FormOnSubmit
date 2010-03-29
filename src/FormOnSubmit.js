@@ -30,6 +30,24 @@
  I would like to see where this ends up :)
  */
 (function(){
+  var REQUIRED_PROTOTYPE = '1.6.1';
+  var checkRequirements = function(){
+    function convertVersionString(versionString){ // taken from script.aculo.us
+      var v = versionString.replace(/_.*|\./g, '');
+      v = parseInt(v + '0'.times(4 - v.length), 10);
+      return versionString.indexOf('_') > -1 ? v - 1 : v;
+    }
+    if ((typeof Prototype == 'undefined') ||
+    (typeof Element == 'undefined') ||
+    (typeof Element.Methods == 'undefined') ||
+    (convertVersionString(Prototype.Version) <
+    convertVersionString(REQUIRED_PROTOTYPE))) {
+      throw ("ProtoCloud requires the Prototype JavaScript framework >= " +
+      REQUIRED_PROTOTYPE +
+      " from http://prototypejs.org/");
+    }
+  };
+  checkRequirements();
   var wrapSubmit = function(form){
     form.store('CustomOriginalSubmit', form.submit);
     form.submit = function(){
@@ -81,7 +99,12 @@
     var params = $A(arguments);
     params.shift();
     form = $(form);
-    if (eventName == "submit") {
+    if (!eventName){
+      unwrapSubmit(form);
+      form.store('CustomSubmitRegistry', null);
+      return proceed.apply(this.prototype, params);
+    }
+    else if (eventName == "submit") {
       var reg;
       if ((reg = form.retrieve('CustomSubmitRegistry'))) {
         if (handler) {
@@ -100,7 +123,7 @@
   };
   Element.addMethods('form', {
     observe: Element.observe.wrap(customObserve),
-    stopObserving: Element.observe.wrap(customStopObserving)
+    stopObserving: Element.stopObserving.wrap(customStopObserving)
   });
   Event.observe = Event.observe.wrap(customObserve);
   Event.stopObserving = Event.stopObserving.wrap(customStopObserving);

@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>
+      Form Submit test
+    </title>
+    <!--CSS-->
+    <style type="text/css">
+      body                       { font:12px/1.3 Arial, Sans-serif; }
+      form                       { width:380px;padding:0 90px 20px;margin:auto;background:#f7f7f7;border:1px solid #ddd; }
+      div                        { clear:both;position:relative;margin:0 0 10px; }
+      label                      { cursor:pointer;display:block; }
+    </style>
+    <!--JavaScript-->
+    <script type="text/javascript" src="../lib/prototype.js"></script>
+    <script type="text/javascript" src="../src/FormOnSubmit.js"></script>
+    <script type="text/javascript">
+      if (!console) {
+        console = {
+          log: function(text){
+            $('log').insert(text + '<br>');
+          }
+        };
+      }
+      function addEventOnSubmit(){
+        Event.observe('info', 'submit', function(ev){
+          console.log('onSubmit using Event.observe');
+          if ($F('StopSubmitEvent')) {
+            console.log('onSubmit stopped in Event.observe');
+            ev.stop();
+          }
+        });
+      }
+      function addElementOnSubmit(){
+        $('info').observe('submit', function(ev){
+          console.log('onSubmit using Element.observe');
+          if ($F('StopSubmitElement')) {
+            console.log('onSubmit stopped in Element.observe');
+            ev.stop();
+          }
+        });
+      }
+      function removeAllOnSubmit(){
+        $('info').stopObserving();
+      }
+      function resetOnSubmit(){
+        addEventOnSubmit();
+        addElementOnSubmit();
+      }
+      document.observe('dom:loaded', function(ev){
+        resetOnSubmit();
+       });
+    </script>
+  </head>
+  <body>
+    <h1>
+      Prototype-based Form Submit Override
+    </h1>
+    <label for="changePosition">Position:</label>
+    <form action="" method="post" id="info" name="info">
+      <label for="StopSubmit">Stop Submit in Event.Observe</label>
+      <input type="checkbox" value="true" id="StopSubmitEvent" checked>
+      <br>
+      <label for="StopSubmitElement">Stop Submit in Element.Observe</label>
+      <input type="checkbox" value="true" id="StopSubmitElement" checked>
+      <br>
+      <input type="text" id="text" value="Hit Enter to submit">
+      <br>
+      <input type="submit" onclick="console.log('Submit Button Clicked');" id="submitbtn" name="submitbtn" value="Normal submit">
+      <input type="button" id="btn" name="btn" value="form.submit();" onclick="console.log('Before form.submit();');form.submit();console.log('After form.submit();');">
+      <input type="button" id="clear" name="clear" value="Clear Log" onclick="$('log').update('');">
+      <input type="button" id="remove" name="remove" value="Remove Observers" onclick="removeAllOnSubmit();">
+      <input type="button" id="reset" name="reset" value="Reset Observers" onclick="resetOnSubmit();">
+    </form>
+    <div id="log"></div>
+  </body>
+</html>
