@@ -16,7 +16,7 @@
     <script type="text/javascript" src="../lib/prototype.js"></script>
     <script type="text/javascript" src="../src/FormOnSubmit.js"></script>
     <script type="text/javascript">
-      if (!console) {
+      if (typeof(console) == 'undefined') {
         console = {
           log: function(text){
             $('log').insert(text + '<br>');

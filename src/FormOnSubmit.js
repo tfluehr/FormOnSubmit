@@ -55,6 +55,10 @@
       if (!ev.stopped) {
         unwrapSubmit(form);
         form.submit();
+        return true;
+      }
+      else{
+        return false;
       }
     };
   };
@@ -87,9 +91,12 @@
         form.observe('Custom:Submit', runSubmit.bind(form));
         form.store('CustomSubmitObserving', null);
       }
-      reg.push(handler);
+      if (typeof(handler) == 'function') {
+        reg.push(handler);
+      }
       form.store('CustomSubmitRegistry', reg);
       reg = null;
+      return form;
     }
     else {
       return proceed.apply(this.prototype, params);
