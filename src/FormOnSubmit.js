@@ -57,7 +57,7 @@
         form.submit();
         return true;
       }
-      else{
+      else {
         return false;
       }
     };
@@ -77,14 +77,16 @@
       }
     }).bind(this));
   };
-  var customObserve = function(proceed, form, eventName, handler){
+  var customObserve = function(proceed, form, eventName, handler, location){
     var params = $A(arguments);
     params.shift();
     form = $(form);
     if (eventName == "submit" && !form.retrieve('CustomSubmitObserving')) {
-      var reg;
-      if (!(reg = form.retrieve('CustomSubmitRegistry'))) {
-        reg = [];
+      var normalReg = form.retrieve('CustomSubmitRegistry'), startReg = form.retrieve('CustomSubmitStartRegistry'), endReg = form.retrieve('CustomSubmitEndRegistry');
+      if (!reg) {
+        normalReg = [];
+        startReg = [];
+        endReg = [];
         wrapSubmit(form);
         form.store('CustomSubmitObserving', true);
         form.observe('submit', runSubmit.bind(form));
@@ -92,10 +94,20 @@
         form.store('CustomSubmitObserving', null);
       }
       if (typeof(handler) == 'function') {
-        reg.push(handler);
+        if (location == "start") {
+          startReg.push(handler);
+        }
+        else if (location == "end") {
+          endReg.push(handler);
+        }
+        else {
+          normalReg.push(handler);
+        }
       }
-      form.store('CustomSubmitRegistry', reg);
-      reg = null;
+      form.store('CustomSubmitRegistry', normalReg);
+      form.store('CustomSubmitStartRegistry', startReg);
+      form.store('CustomSubmitEndRegistry', endReg);
+      startReg = endReg = normalReg = null;
       return form;
     }
     else {
@@ -106,7 +118,7 @@
     var params = $A(arguments);
     params.shift();
     form = $(form);
-    if (!eventName){
+    if (!eventName) {
       unwrapSubmit(form);
       form.store('CustomSubmitRegistry', null);
       return proceed.apply(this.prototype, params);
