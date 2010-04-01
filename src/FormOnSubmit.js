@@ -54,8 +54,14 @@
       var ev = form.fire('Custom:Submit');
       if (!ev.stopped) {
         unwrapSubmit(form);
-        form.submit();
-        return true;
+        var ev2 = form.fire('before:submit');
+        if (!ev2.stopped) {
+          form.submit();
+          return true;
+        }
+        else{
+          return false;
+        }
       }
       else {
         return false;
@@ -70,12 +76,18 @@
     }
   };
   var runSubmit = function(ev){
-    var handlers = this.retrieve('CustomSubmitRegistry');
-    handlers.each((function(handler){
-      if (!ev.stopped) {
-        handler.call(this, ev);
-      }
-    }).bind(this));
+    var ev2 = form.fire('before:submitHandlers');
+    if (!ev2.stopped) {
+      var handlers = this.retrieve('CustomSubmitRegistry');
+      handlers.each((function(handler){
+        if (!ev.stopped) {
+          handler.call(this, ev);
+        }
+      }).bind(this));
+    }
+    else {
+      ev.stop();
+    }
   };
   var customObserve = function(proceed, form, eventName, handler, location){
     var params = $A(arguments);
