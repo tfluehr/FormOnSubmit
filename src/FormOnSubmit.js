@@ -76,29 +76,41 @@
     }
   };
   var runSubmit = function(ev){
-    var ev2 = form.fire('before:submitHandlers');
-    if (!ev2.stopped) {
-      var handlers = this.retrieve('CustomSubmitRegistry');
-      handlers.each((function(handler){
+    try {
+      var ev2 = form.fire('before:submitHandlers');
+      if (!ev2.stopped) {
+        var handlers = this.retrieve('CustomSubmitRegistry');
+        handlers.each((function(handler){
+          if (!ev.stopped) {
+            handler.call(this, ev);
+          }
+        }).bind(this));
         if (!ev.stopped) {
-          handler.call(this, ev);
+          ev2 = form.fire('after:submitHandlers');
+          if (ev2.stopped) {
+            ev.stop();
+          }
         }
-      }).bind(this));
-    }
-    else {
+      }
+      else {
+        ev.stop();
+      }
+    } catch (e){
+      // there was an error so stop the submit and throw the error in a defer so it gets out.
       ev.stop();
+      (function(){
+        throw e;
+      }).defer();
     }
   };
-  var customObserve = function(proceed, form, eventName, handler, location){
+  var customObserve = function(proceed, form, eventName, handler){
     var params = $A(arguments);
     params.shift();
     form = $(form);
     if (eventName == "submit" && !form.retrieve('CustomSubmitObserving')) {
-      var normalReg = form.retrieve('CustomSubmitRegistry'), startReg = form.retrieve('CustomSubmitStartRegistry'), endReg = form.retrieve('CustomSubmitEndRegistry');
+      var reg = form.retrieve('CustomSubmitRegistry');
       if (!reg) {
-        normalReg = [];
-        startReg = [];
-        endReg = [];
+        reg = [];
         wrapSubmit(form);
         form.store('CustomSubmitObserving', true);
         form.observe('submit', runSubmit.bind(form));
@@ -106,20 +118,10 @@
         form.store('CustomSubmitObserving', null);
       }
       if (typeof(handler) == 'function') {
-        if (location == "start") {
-          startReg.push(handler);
-        }
-        else if (location == "end") {
-          endReg.push(handler);
-        }
-        else {
-          normalReg.push(handler);
-        }
+        reg.push(handler);
       }
-      form.store('CustomSubmitRegistry', normalReg);
-      form.store('CustomSubmitStartRegistry', startReg);
-      form.store('CustomSubmitEndRegistry', endReg);
-      startReg = endReg = normalReg = null;
+      form.store('CustomSubmitRegistry', reg);
+      reg = null;
       return form;
     }
     else {
