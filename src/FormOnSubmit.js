@@ -77,6 +77,7 @@
   };
   var runSubmit = function(ev){
     try {
+      var form = ev.element();
       var ev2 = form.fire('before:submitHandlers');
       if (!ev2.stopped) {
         var handlers = this.retrieve('CustomSubmitRegistry');
