@@ -51,7 +51,8 @@
   var wrapSubmit = function(form){
     form.store('CustomOriginalSubmit', form.submit);
     form.submit = function(){
-      var ev = form.fire('Custom:Submit');
+      var args = $A(arguments);
+      var ev = form.fire('Custom:Submit', args);
       if (!ev.stopped) {
         unwrapSubmit(form);
         var ev2 = form.fire('before:submit');
@@ -69,7 +70,7 @@
     };
   };
   var unwrapSubmit = function(form){
-    var s = form.retrieve('CustomOriginalSubmit');
+    var s = form.retrieve && form.retrieve('CustomOriginalSubmit');
     if (s) {
       form.store('CustomOriginalSubmit', null);
       form.submit = s;
@@ -135,7 +136,7 @@
     form = $(form);
     if (!eventName) {
       unwrapSubmit(form);
-      form.store('CustomSubmitRegistry', null);
+      (form.store && form.store('CustomSubmitRegistry', null));
       return proceed.apply(this.prototype, params);
     }
     else if (eventName == "submit") {
